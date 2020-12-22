@@ -21,7 +21,12 @@
 #define __RFB_TIMER_H__
 
 #include <list>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 namespace rfb {
 

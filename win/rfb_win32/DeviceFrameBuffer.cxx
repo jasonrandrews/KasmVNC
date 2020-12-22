@@ -22,6 +22,8 @@
 // The DeviceFrameBuffer class encapsulates the pixel data of the system
 // display.
 
+#include <os/w32tiger.h>
+
 #include <vector>
 #include <rfb_win32/DeviceFrameBuffer.h>
 #include <rfb_win32/DeviceContext.h>

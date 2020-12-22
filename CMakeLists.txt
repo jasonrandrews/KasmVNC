@@ -38,14 +38,15 @@ set(BIN_DIR "${CMAKE_INSTALL_PREFIX}")
 set(DOC_DIR "${CMAKE_INSTALL_PREFIX}")
 endif()
 
-if(MSVC)
-  message(FATAL_ERROR "KasmVNC cannot be built with Visual Studio.  Please use MinGW")
+# Verify VPCKG toolchain is present
+if (WIN32 AND NOT VCPKG_TOOLCHAIN)
+  message(FATAL_ERROR "vcpkg toolchain missing!")
 endif()
 
 if(NOT BUILD_TIMESTAMP)
   set(BUILD_TIMESTAMP "")
   execute_process(COMMAND "date" "+%Y-%m-%d %H:%M" OUTPUT_VARIABLE BUILD_TIMESTAMP)
-  string(REGEX REPLACE "\n" "" BUILD_TIMESTAMP ${BUILD_TIMESTAMP})
+  string(REGEX REPLACE "\n" "" "BUILD_TIMESTAMP" "${BUILD_TIMESTAMP}")
 endif()
 
 # Default to optimised builds instead of debug ones. Our code has no bugs ;)
@@ -71,21 +72,24 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -UNDEBUG")
 set(CMAKE_C_FLAGS_MINSIZEREL "${CMAKE_C_FLAGS_MINSIZEREL} -UNDEBUG")
 set(CMAKE_CXX_FLAGS_MINSIZEREL "${CMAKE_CXX_FLAGS_MINSIZEREL} -UNDEBUG")
 
-# Make sure we get a sane C version
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+if (NOT MSVC)
+  # Tell the compiler to be stringent
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat=2")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wformat=2")
 
-# Enable OpenMP
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+  # Make sure we catch these issues whilst developing
+  IF(CMAKE_BUILD_TYPE MATCHES Debug)
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
+  ENDIF()
 
-# Tell the compiler to be stringent
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wformat=2")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wformat=2")
-# Make sure we catch these issues whilst developing
-IF(CMAKE_BUILD_TYPE MATCHES Debug)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Werror")
-ENDIF()
+  # Make sure we get a sane C version
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+
+  # Enable OpenMP
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
+endif()
 
 option(ENABLE_ASAN "Enable address sanitizer support" OFF)
 if(ENABLE_ASAN AND NOT WIN32 AND NOT APPLE)
@@ -140,6 +144,12 @@ endif()
 if(UNIX AND NOT APPLE)
   find_package(X11 REQUIRED)
 endif()
+
+# Check for openssl
+find_package(OpenSSL REQUIRED)
+
+# Check for WEBP
+find_package(WEBP REQUIRED)
 
 # Check for zlib
 find_package(ZLIB REQUIRED)
@@ -208,6 +218,19 @@ if(ENABLE_PAM)
 endif()
 set(HAVE_PAM ${ENABLE_PAM})
 
+# MSVC differences
+if (WIN32)
+add_definitions(-D__unused_attr=)
+add_definitions(-D__attribute__=)
+add_definitions(-D__thread=)
+add_definitions(-Dstrncasecmp=_strnicmp)
+add_definitions(-Dstrcasecmp=_stricmp)
+add_definitions(-Drandom=rand)
+add_definitions(-DWIN32_LEAN_AND_MEAN)
+
+include_directories(${CMAKE_SOURCE_DIR}/common/platform)
+endif()
+
 # Generate config.h and make sure the source finds it
 configure_file(config.h.in config.h)
 add_definitions(-DHAVE_CONFIG_H)
@@ -229,9 +252,6 @@ endif()
 if(ENABLE_NLS)
   add_subdirectory(po)
 endif()
-
-add_subdirectory(tests)
-
 
 include(cmake/BuildPackages.cmake)
 

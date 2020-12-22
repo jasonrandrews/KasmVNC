@@ -23,10 +23,15 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <errno.h>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
+#include <sys/time.h>
+#endif
 
 #include <signal.h>
 #include <X11/X.h>

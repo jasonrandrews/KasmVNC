@@ -60,10 +60,10 @@ VNCServerWin32::VNCServerWin32()
   : command(NoCommand),
     commandEvent(CreateEvent(0, TRUE, FALSE, 0)),
     sessionEvent(isServiceProcess() ?
-      CreateEvent(0, FALSE, FALSE, "Global\\SessionEventKasmVNC") : 0),
+      CreateEventA(0, FALSE, FALSE, "Global\\SessionEventKasmVNC") : 0),
     vncServer(CStr(ComputerName().buf), &desktop),
     thread_id(-1), runServer(false), isDesktopStarted(false),
-    httpServer(this), config(&sockMgr),
+    config(&sockMgr),
     rfbSock(&sockMgr), httpSock(&sockMgr), trayIcon(0),
     queryConnectDialog(0)
 {
@@ -148,11 +148,6 @@ void VNCServerWin32::regConfigChanged() {
   // -=- Make sure we're listening on the right ports.
   rfbSock.setServer(&vncServer);
   rfbSock.setPort(port_number, localHost);
-  httpSock.setServer(&httpServer);
-  httpSock.setPort(http_port, localHost);
-
-  // -=- Update the Java viewer's web page port number.
-  httpServer.setRFBport(rfbSock.isListening() ? port_number : 0);
 
   // -=- Update the TCP address filter for both ports, if open.
   CharArray pattern(hosts.getData());

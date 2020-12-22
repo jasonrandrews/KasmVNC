@@ -27,7 +27,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <rdr/Exception.h>
 #include <rdr/FileInStream.h>

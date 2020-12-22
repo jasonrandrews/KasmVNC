@@ -19,6 +19,7 @@
  * USA.
  */
 
+#include <vector>
 #include <assert.h>
 
 #include <rdr/InStream.h>
@@ -266,15 +267,15 @@ void TightDecoder::decodeRect(const Rect& r, const void* buffer,
       buflen -= 1;
 
       if (pf.is888()) {
-        rdr::U8 tightPalette[palSize * 3];
+        std::vector<rdr::U8> tightPalette(palSize * 3);
 
         assert(buflen >= sizeof(tightPalette));
 
-        memcpy(tightPalette, bufptr, sizeof(tightPalette));
+        memcpy(&tightPalette[0], bufptr, sizeof(tightPalette));
         bufptr += sizeof(tightPalette);
         buflen -= sizeof(tightPalette);
 
-        pf.bufferFromRGB(palette, tightPalette, palSize);
+        pf.bufferFromRGB(palette, &tightPalette[0], palSize);
       } else {
         size_t len;
 

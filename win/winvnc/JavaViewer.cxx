@@ -16,7 +16,6 @@
  * USA.
  */
 
-#include <winvnc/JavaViewer.h>
 #include <winvnc/VNCServerWin32.h>
 #include <winvnc/resource.h>
 #include <rdr/MemInStream.h>

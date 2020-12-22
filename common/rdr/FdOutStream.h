@@ -24,7 +24,11 @@
 #ifndef __RDR_FDOUTSTREAM_H__
 #define __RDR_FDOUTSTREAM_H__
 
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <rdr/OutStream.h>
 

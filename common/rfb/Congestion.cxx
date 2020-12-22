@@ -34,14 +34,16 @@
  */
 
 #include <assert.h>
-#include <sys/time.h>
 
 #ifdef __linux__
 #include <sys/ioctl.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <linux/sockios.h>
+#else
+#include <os/w32tiger.h>
 #endif
 
 #include <rfb/Congestion.h>

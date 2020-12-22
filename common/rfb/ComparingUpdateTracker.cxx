@@ -15,6 +15,10 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#endif
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>

@@ -10,6 +10,8 @@ add_executable(vncconfig
   QueryConnectDialog.cxx)
 
 target_link_libraries(vncconfig tx rfb network rdr ${X11_LIBRARIES})
+target_link_libraries(vncconfig OpenSSL::SSL OpenSSL::Crypto)
+
 
 install(TARGETS vncconfig DESTINATION ${BIN_DIR})
 install(FILES vncconfig.man DESTINATION ${MAN_DIR}/man1 RENAME vncconfig.1)

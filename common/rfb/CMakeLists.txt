@@ -97,7 +97,7 @@ endif()
 
 add_library(rfb STATIC ${RFB_SOURCES})
 
-target_link_libraries(rfb ${RFB_LIBRARIES})
+target_link_libraries(rfb ${RFB_LIBRARIES} ${WEBP_LIBRARIES})
 
 if(UNIX)
   libtool_create_control_file(rfb)

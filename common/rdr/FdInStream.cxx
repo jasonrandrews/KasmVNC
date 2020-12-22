@@ -23,14 +23,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
-#include <sys/time.h>
 #ifdef _WIN32
-#include <winsock2.h>
-#define close closesocket
-#undef errno
-#define errno WSAGetLastError()
-#include <os/winerrno.h>
+#include <os/w32tiger.h>
 #else
+#include <sys/time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>

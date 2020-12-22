@@ -22,7 +22,12 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <rfb/util.h>
 

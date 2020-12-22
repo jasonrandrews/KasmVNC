@@ -24,8 +24,13 @@
 #include <rfb/TightWEBPEncoder.h>
 #include <rfb/TightConstants.h>
 #include <rfb/util.h>
-#include <sys/time.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
+#include <sys/time.h>
+#endif
 
 #include <webp/encode.h>
 

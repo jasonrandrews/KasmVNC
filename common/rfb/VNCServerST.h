@@ -24,7 +24,11 @@
 #ifndef __RFB_VNCSERVERST_H__
 #define __RFB_VNCSERVERST_H__
 
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <rfb/EncCache.h>
 #include <rfb/SDesktop.h>
@@ -40,7 +44,7 @@ namespace rfb {
 
   class VNCSConnectionST;
   class ComparingUpdateTracker;
-  class ListConnInfo;
+  struct ListConnInfo;
   class PixelBuffer;
   class KeyRemapper;
 

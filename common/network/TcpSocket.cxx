@@ -29,16 +29,16 @@
 #define errorNumber errno
 #define closesocket close
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <netdb.h>
 #include <errno.h>
-#endif
-
-#include <sys/un.h>
-#include <stdlib.h>
 #include <unistd.h>
 #include <wordexp.h>
+#endif
+
+#include <stdlib.h>
 #include "websocket.h"
 
 #include <network/TcpSocket.h>
@@ -419,7 +419,7 @@ int TcpListener::getMyPort() {
   return getSockPort(getFd());
 }
 
-extern settings_t settings;
+settings_t settings = { 0 };
 
 WebsocketListener::WebsocketListener(const struct sockaddr *listenaddr,
                          socklen_t listenaddrlen,
@@ -489,11 +489,10 @@ WebsocketListener::WebsocketListener(const struct sockaddr *listenaddr,
 
   settings.passwdfile = NULL;
 
-  wordexp_t wexp;
-  if (!wordexp(rfb::Server::kasmPasswordFile, &wexp, WRDE_NOCMD))
-    settings.passwdfile = strdup(wexp.we_wordv[0]);
-  wordfree(&wexp);
-
+  
+  char passwordFile[10240] = "";
+  ExpandEnvironmentStringsA(rfb::Server::kasmPasswordFile.getData(), &passwordFile[0], ARRAYSIZE(passwordFile));
+  settings.passwdfile = strdup(passwordFile);
   settings.basicauth = basicauth;
   settings.cert = cert;
   settings.key = "";

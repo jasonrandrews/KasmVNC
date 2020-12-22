@@ -17,7 +17,12 @@
  */
 
 #include <math.h>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>

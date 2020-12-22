@@ -1,3 +1,7 @@
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#endif
+
 #include <openssl/ssl.h>
 
 #define BUFSIZE 65536

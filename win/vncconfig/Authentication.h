@@ -20,6 +20,7 @@
 
 #include <windows.h>
 #include <commctrl.h>
+#include <commdlg.h>
 
 #include <vncconfig/PasswordDialog.h>
 #include <rfb_win32/Registry.h>

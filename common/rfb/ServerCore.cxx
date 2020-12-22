@@ -194,7 +194,7 @@ rfb::BoolParameter rfb::Server::printVideoArea
 rfb::StringParameter rfb::Server::kasmPasswordFile
 ("KasmPasswordFile",
  "Password file for BasicAuth, created with the kasmvncpasswd utility.",
- "~/.kasmpasswd");
+ "%userprofile%/.kasmpasswd");
 
 static void bandwidthPreset() {
   rfb::Server::dynamicQualityMin.setParam(2);

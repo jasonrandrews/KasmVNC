@@ -32,7 +32,12 @@
 #include <rfb/util.h>
 
 #include <stdint.h>
+
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
 #include <sys/time.h>
+#endif
 
 namespace rfb {
   class SConnection;

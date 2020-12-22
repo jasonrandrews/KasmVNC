@@ -7,18 +7,23 @@
  * openssl req -new -x509 -days 365 -nodes -out self.pem -keyout self.pem
  * as taken from http://docs.python.org/dev/library/ssl.html#certificates
  */
-#include <stdio.h>
-#include <errno.h>
-#include <limits.h>
-#include <getopt.h>
-#include <string.h>
+#ifdef _WIN32
+#include <os/w32tiger.h>
+#else
+#include <unistd.h>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <netdb.h>
 #include <sys/select.h>
+#endif
+
+#include <stdio.h>
+#include <errno.h>
+#include <limits.h>
+#include <getopt.h>
+#include <string.h>
 #include <fcntl.h>
-#include <unistd.h>
 #include <sys/stat.h>
 #include "websocket.h"
 

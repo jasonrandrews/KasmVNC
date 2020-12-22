@@ -16,6 +16,7 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
+#include <vector>
 #include <assert.h>
 #include <string.h>
 #include <rfb/Cursor.h>
@@ -122,8 +123,8 @@ static void dither(int width, int height, int* data)
 rdr::U8* Cursor::getBitmap() const
 {
   // First step is converting to luminance
-  int luminance[width()*height()];
-  int *lum_ptr = luminance;
+  std::vector<int> luminance(width() * height());
+  int *lum_ptr = &luminance[0];
   const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
@@ -140,13 +141,13 @@ rdr::U8* Cursor::getBitmap() const
   }
 
   // Then diterhing
-  dither(width(), height(), luminance);
+  dither(width(), height(), &luminance[0]);
 
   // Then conversion to a bit mask
   rdr::U8Array source((width()+7)/8*height());
   memset(source.buf, 0, (width()+7)/8*height());
   int maskBytesPerRow = (width() + 7) / 8;
-  lum_ptr = luminance;
+  lum_ptr = &luminance[0];
   data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
@@ -165,8 +166,8 @@ rdr::U8* Cursor::getBitmap() const
 rdr::U8* Cursor::getMask() const
 {
   // First step is converting to integer array
-  int alpha[width()*height()];
-  int *alpha_ptr = alpha;
+  std::vector<int> alpha(width() * height());
+  int *alpha_ptr = &alpha[0];
   const rdr::U8 *data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
@@ -177,13 +178,13 @@ rdr::U8* Cursor::getMask() const
   }
 
   // Then diterhing
-  dither(width(), height(), alpha);
+  dither(width(), height(), &alpha[0]);
 
   // Then conversion to a bit mask
   rdr::U8Array mask((width()+7)/8*height());
   memset(mask.buf, 0, (width()+7)/8*height());
   int maskBytesPerRow = (width() + 7) / 8;
-  alpha_ptr = alpha;
+  alpha_ptr = &alpha[0];
   data_ptr = data;
   for (int y = 0; y < height(); y++) {
     for (int x = 0; x < width(); x++) {
