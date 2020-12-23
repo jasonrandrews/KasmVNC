@@ -36,7 +36,6 @@ namespace rfb {
         setItemChecked(IDC_USEPOLLING, rfb::win32::SDisplay::updateMethod == 0);
         setItemChecked(IDC_USEHOOKS, (rfb::win32::SDisplay::updateMethod == 1));
         setItemChecked(IDC_POLLCONSOLES, rfb::win32::WMPoller::poll_console_windows);
-        setItemChecked(IDC_CAPTUREBLT, rfb::win32::DeviceFrameBuffer::useCaptureBlt);
         onCommand(IDC_USEHOOKS, 0);
       }
       bool onCommand(int id, int cmd) {
@@ -47,8 +46,7 @@ namespace rfb {
         case IDC_CAPTUREBLT:
           setChanged(((rfb::win32::SDisplay::updateMethod == 0) != isItemChecked(IDC_USEPOLLING)) ||
             ((rfb::win32::SDisplay::updateMethod == 1) != isItemChecked(IDC_USEHOOKS)) ||
-            (rfb::win32::WMPoller::poll_console_windows != isItemChecked(IDC_POLLCONSOLES)) ||
-            (rfb::win32::DeviceFrameBuffer::useCaptureBlt != isItemChecked(IDC_CAPTUREBLT)));
+            (rfb::win32::WMPoller::poll_console_windows != isItemChecked(IDC_POLLCONSOLES)));
           enableItem(IDC_POLLCONSOLES, isItemChecked(IDC_USEHOOKS));
           break;
         }
@@ -60,8 +58,7 @@ namespace rfb {
         if (isItemChecked(IDC_USEHOOKS))
           regKey.setInt(_T("UpdateMethod"), 1);
         regKey.setBool(_T("PollConsoleWindows"), isItemChecked(IDC_POLLCONSOLES));
-        regKey.setBool(_T("UseCaptureBlt"), isItemChecked(IDC_CAPTUREBLT));
-
+       
         // *** LEGACY compatibility ***
         regKey.setBool(_T("UseHooks"), isItemChecked(IDC_USEHOOKS));
         return true;

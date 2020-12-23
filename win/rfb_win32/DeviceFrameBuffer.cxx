@@ -1,28 +1,26 @@
 /* Copyright (C) 2002-2005 RealVNC Ltd.  All Rights Reserved.
  * Copyright 2014-2017 Pierre Ossman for Cendio AB
- * 
+ *
  * This is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; either version 2 of the License, or
  * (at your option) any later version.
- * 
+ *
  * This software is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this software; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
  * USA.
  */
 
-// -=- DeviceFrameBuffer.cxx
-//
-// The DeviceFrameBuffer class encapsulates the pixel data of the system
-// display.
-
-#include <os/w32tiger.h>
+ // -=- DeviceFrameBuffer.cxx
+ //
+ // The DeviceFrameBuffer class encapsulates the pixel data of the system
+ // display.
 
 #include <vector>
 #include <rfb_win32/DeviceFrameBuffer.h>
@@ -31,106 +29,215 @@
 #include <rfb/VNCServer.h>
 #include <rfb/LogWriter.h>
 
+#include <intrin.h>
+
+#include <os/w32tiger.h>
+
 using namespace rfb;
 using namespace win32;
 
 static LogWriter vlog("DeviceFrameBuffer");
 
-BoolParameter DeviceFrameBuffer::useCaptureBlt("UseCaptureBlt",
-  "Use a slower capture method that ensures that alpha blended windows appear correctly",
-  true);
-
-
 // -=- DeviceFrameBuffer class
 
-DeviceFrameBuffer::DeviceFrameBuffer(HDC deviceContext, const Rect& wRect)
-  : DIBSectionBuffer(deviceContext), device(deviceContext),
-    ignoreGrabErrors(false)
+DeviceFrameBuffer::DeviceFrameBuffer(HDC device, const Rect& wRect)
+    : device(device)
+    , d3dDevice(0)
+    , d3dDeviceContext(0)
+    , dxgiOutputDuplication(0)
+    , frameTexture(0)
 {
+    //
+    HDESK desktop = OpenInputDesktop(0, FALSE, GENERIC_ALL);
 
-  // -=- Firstly, let's check that the device has suitable capabilities
+    if (!desktop) {
+        throw Exception("OpenInputDesktop() failed!");
+    }
 
-  int capabilities = GetDeviceCaps(device, RASTERCAPS);
-  if (!(capabilities & RC_BITBLT)) {
-    throw Exception("device does not support BitBlt");
-  }
-  if (!(capabilities & RC_DI_BITMAP)) {
-    throw Exception("device does not support GetDIBits");
-  }
-  /*
-  if (GetDeviceCaps(device, PLANES) != 1) {
-    throw Exception("device does not support planar displays");
-  }
-  */
+    D3D_DRIVER_TYPE driverTypes[] = {
+        D3D_DRIVER_TYPE_HARDWARE,
+        D3D_DRIVER_TYPE_WARP
+    };
 
-  // -=- Get the display dimensions and pixel format
+    D3D_FEATURE_LEVEL featureLevels[] = {
+        D3D_FEATURE_LEVEL_11_0,
+        D3D_FEATURE_LEVEL_10_1,
+        D3D_FEATURE_LEVEL_10_0,
+        D3D_FEATURE_LEVEL_9_1
+    };
 
-  // Get the display dimensions
-  deviceCoords = DeviceContext::getClipBox(device);
-  if (!wRect.is_empty())
-    deviceCoords = wRect.translate(deviceCoords.tl);
-  int w = deviceCoords.width();
-  int h = deviceCoords.height();
+    HRESULT result = 0;
 
-  // We can't handle uneven widths :(
-  if (w % 2) w--;
+    for (D3D_DRIVER_TYPE& driver : driverTypes) {
+        D3D_FEATURE_LEVEL featureLevel;
 
-  // Configure the underlying DIB to match the device
-  DIBSectionBuffer::setPF(DeviceContext::getPF(device));
-  DIBSectionBuffer::setSize(w, h);
+        if ((result = D3D11CreateDevice(0, driver, 0, 0, featureLevels, ARRAYSIZE(featureLevels), D3D11_SDK_VERSION, &d3dDevice, &featureLevel, &d3dDeviceContext)) >= 0) {
+            break;
+        }
+    }
+
+    if (result < 0) {
+        throw Exception("D3D11CreateDevice() failed!");
+    }
+
+    //
+    IDXGIDevice* dxgiDevice = 0;
+
+    result = d3dDevice->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
+
+    if (result < 0) {
+        throw Exception("d3dDevice->QueryInterface() failed!");
+    }
+
+    //
+    IDXGIAdapter* dxgiAdapter = 0;
+
+    result = dxgiDevice->GetParent(__uuidof(IDXGIAdapter), (void**)&dxgiAdapter);
+
+    dxgiDevice->Release();
+    dxgiDevice = 0;
+
+    if (result < 0) {
+        throw Exception("dxgiDevice->GetParent() failed!");
+    }
+
+    //
+    IDXGIOutput* dxgiOutput = 0;
+
+    result = dxgiAdapter->EnumOutputs(0, &dxgiOutput);
+
+    dxgiAdapter->Release();
+    dxgiAdapter = 0;
+
+    if (result < 0) {
+        throw Exception("dxgiAdapter->EnumOutputs() failed!");
+    }
+
+    
+    DXGI_OUTPUT_DESC outputDescription = { 0 };
+    dxgiOutput->GetDesc(&outputDescription);
+
+    //
+    IDXGIOutput6* dxgiOutputImpl = 0;
+
+    result = dxgiOutput->QueryInterface(__uuidof(dxgiOutputImpl), (void**)&dxgiOutputImpl);
+
+    dxgiOutput->Release();
+    dxgiOutput = 0;
+
+    if (result < 0) {
+        throw Exception("dxgiOutput->QueryInterface() failed!");
+    }
+
+    //
+    result = dxgiOutputImpl->DuplicateOutput(d3dDevice, &dxgiOutputDuplication);
+
+    dxgiOutputImpl->Release();
+    dxgiOutputImpl = 0;
+
+    if (result == DXGI_ERROR_NOT_CURRENTLY_AVAILABLE) {
+        throw Exception("Too many desktop records active at once!");
+    }
+
+    if (result < 0) {
+        throw Exception("dxgiOutputImpl->DuplicateOutput() failed!");
+    }
+
+    //
+    format.parse("rgb888");
+    width_ = outputDescription.DesktopCoordinates.right - outputDescription.DesktopCoordinates.left;
+    height_ = outputDescription.DesktopCoordinates.bottom - outputDescription.DesktopCoordinates.top;
 }
 
 DeviceFrameBuffer::~DeviceFrameBuffer() {
+    if (dxgiOutputDuplication) {
+        dxgiOutputDuplication->ReleaseFrame();
+        dxgiOutputDuplication->Release();
+    }
+
+    if (d3dDeviceContext) {
+        d3dDeviceContext->Release();
+    }
+
+    if (d3dDevice) {
+        d3dDevice->Release();
+    }
 }
-
-
-void
-DeviceFrameBuffer::setPF(const PixelFormat &pf) {
-  throw Exception("setPF not supported");
-}
-
-void
-DeviceFrameBuffer::setSize(int w, int h) {
-  throw Exception("setSize not supported");
-}
-
-
-#ifndef CAPTUREBLT
-#define CAPTUREBLT 0x40000000
-#endif
 
 void
 DeviceFrameBuffer::grabRect(const Rect &rect) {
-  BitmapDC tmpDC(device, bitmap);
-
-  // Map the rectangle coords from VNC Desktop-relative to device relative - usually (0,0)
-  Point src = desktopToDevice(rect.tl);
-
-  if (!::BitBlt(tmpDC, rect.tl.x, rect.tl.y,
-                rect.width(), rect.height(), device, src.x, src.y,
-                useCaptureBlt ? (CAPTUREBLT | SRCCOPY) : SRCCOPY)) {
-    if (ignoreGrabErrors)
-      vlog.error("BitBlt failed:%ld", GetLastError());
-    else
-      throw rdr::SystemException("BitBlt failed", GetLastError());
-  }
 }
 
 void
 DeviceFrameBuffer::grabRegion(const Region &rgn) {
-  std::vector<Rect> rects;
-  std::vector<Rect>::const_iterator i;
-  rgn.get_rects(&rects);
-  for(i=rects.begin(); i!=rects.end(); i++) {
-    grabRect(*i);
-  }
-  ::GdiFlush();
-}
+  //  acquire the next frame
+  HRESULT result = 0;
 
+  IDXGIResource* frameResource = 0;
+  DXGI_OUTDUPL_FRAME_INFO frameInfo = { 0 };
+  dxgiOutputDuplication->AcquireNextFrame(0, &frameInfo, &frameResource);
+
+  // no new frames, data still holdes the last frame
+  if (frameInfo.AccumulatedFrames == 0) {
+    dxgiOutputDuplication->ReleaseFrame();
+    return;
+  }
+
+  // access the screen as a GPU texture
+  ID3D11Texture2D* screenTexture = 0;
+
+  result = frameResource->QueryInterface(__uuidof(ID3D11Texture2D), (void**)&screenTexture);
+
+  frameResource->Release();
+  frameResource = 0;
+  
+  if (result < 0) {
+    return;
+  }
+
+  // create a CPU accessible texture, if necessary
+  if (!frameTexture) {
+    D3D11_TEXTURE2D_DESC textureDescription = { 0 };
+    screenTexture->GetDesc(&textureDescription);
+    textureDescription.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+    textureDescription.Usage = D3D11_USAGE_STAGING;
+    textureDescription.BindFlags = 0;
+    textureDescription.MiscFlags = 0;
+    d3dDevice->CreateTexture2D(&textureDescription, 0, &frameTexture);
+  }
+
+  // copy whole screen
+  // TODO: change to region based copying
+  ID3D11DeviceContext* immediateContext = 0;
+  d3dDevice->GetImmediateContext(&immediateContext);
+  immediateContext->CopyResource(frameTexture, screenTexture);
+
+  // 
+  if (data == 0) {
+    data = new rdr::U8[width_ * height_ * 4];
+    stride = width_;
+  }
+
+  // copy the data to the internal buffer
+  D3D11_MAPPED_SUBRESOURCE textureData = { 0 };
+
+  result = immediateContext->Map(frameTexture, 0, D3D11_MAP_READ, 0, &textureData);
+
+  if (result == 0) {
+    for (int y = 0; y < height_; y++) {
+      memcpy(data + y * width_ * 4, (uint8_t*)textureData.pData + textureData.RowPitch * y, width_ * 4);
+    }
+  }
+
+  d3dDeviceContext->Unmap(frameTexture, 0);
+
+  //
+  dxgiOutputDuplication->ReleaseFrame();
+}
 
 void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 {
-  // - If hCursor is null then there is no cursor - clear the old one
+   // - If hCursor is null then there is no cursor - clear the old one
 
   if (hCursor == 0) {
     server->setCursor(0, 0, Point(), NULL);
@@ -165,7 +272,6 @@ void DeviceFrameBuffer::setCursor(HCURSOR hCursor, VNCServer* server)
 
     if (iconInfo.hbmColor) {
       // Colour cursor
-
       BITMAPV5HEADER bi;
       BitmapDC dc(device, iconInfo.hbmColor);
 

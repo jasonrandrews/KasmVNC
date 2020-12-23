@@ -5,7 +5,6 @@ set(RFB_WIN32_SOURCES
   DeviceContext.cxx
   DeviceFrameBuffer.cxx
   Dialog.cxx
-  DIBSectionBuffer.cxx
   EventManager.cxx
   LaunchProcess.cxx
   ListViewControl.cxx
@@ -35,6 +34,11 @@ if(BUILD_WINVNC)
   set(RFB_WIN32_SOURCES ${RFB_WIN32_SOURCES} CleanDesktop.cxx)
 endif()
 
+find_package(DX11 REQUIRED)
+include_directories(${DX11_INCLUDE_DIRS})
+link_directories(${DX11_LIB_DIRS})
+
 add_library(rfb_win32 STATIC ${RFB_WIN32_SOURCES})
 
 target_link_libraries(rfb_win32 user32.lib comctl32.lib wtsapi32.lib version.lib)
+target_link_libraries(rfb_win32 ${DX11_LIBRARIES})

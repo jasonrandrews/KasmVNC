@@ -463,9 +463,6 @@ SDisplay::recreatePixelBuffer(bool force) {
   // Initialise the pixels
   pb->grabRegion(pb->getRect());
 
-  // Prevent future grabRect operations from throwing exceptions
-  pb->setIgnoreGrabErrors(true);
-
   // Update the clipping update tracker
   clipper.setClipRect(pb->getRect());
 
