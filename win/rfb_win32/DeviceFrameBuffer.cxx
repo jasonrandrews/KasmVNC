@@ -147,6 +147,11 @@ DeviceFrameBuffer::DeviceFrameBuffer(HDC device, const Rect& wRect)
     format.parse("rgb888");
     width_ = outputDescription.DesktopCoordinates.right - outputDescription.DesktopCoordinates.left;
     height_ = outputDescription.DesktopCoordinates.bottom - outputDescription.DesktopCoordinates.top;
+
+    //
+    data = new rdr::U8[width_ * height_ * 4];
+    memset(data, 0, width_ * height_ * 4);
+    stride = width_;
 }
 
 DeviceFrameBuffer::~DeviceFrameBuffer() {
@@ -211,12 +216,6 @@ DeviceFrameBuffer::grabRegion(const Region &rgn) {
   ID3D11DeviceContext* immediateContext = 0;
   d3dDevice->GetImmediateContext(&immediateContext);
   immediateContext->CopyResource(frameTexture, screenTexture);
-
-  // 
-  if (data == 0) {
-    data = new rdr::U8[width_ * height_ * 4];
-    stride = width_;
-  }
 
   // copy the data to the internal buffer
   D3D11_MAPPED_SUBRESOURCE textureData = { 0 };
