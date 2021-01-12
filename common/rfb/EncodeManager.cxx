@@ -38,6 +38,8 @@
 #include <rfb/HextileEncoder.h>
 #include <rfb/ZRLEEncoder.h>
 #include <rfb/TightEncoder.h>
+#include <rfb/TightIndexedGIFEncoder.h>
+#include <rfb/TightIndexedPNGEncoder.h>
 #include <rfb/TightJPEGEncoder.h>
 #include <rfb/TightWEBPEncoder.h>
 
@@ -66,6 +68,8 @@ enum EncoderClass {
   encoderRRE,
   encoderHextile,
   encoderTight,
+  encoderTightIndexedGIF,
+  encoderTightIndexedPNG,
   encoderTightJPEG,
   encoderTightWEBP,
   encoderZRLE,
@@ -106,6 +110,10 @@ static const char *encoderClassName(EncoderClass klass)
     return "Hextile";
   case encoderTight:
     return "Tight";
+  case encoderTightIndexedGIF:
+    return "TightIndexed (GIF)";
+  case encoderTightIndexedPNG:
+    return "TightIndexed (PNG)";
   case encoderTightJPEG:
     return "Tight (JPEG)";
   case encoderTightWEBP:
@@ -168,6 +176,8 @@ EncodeManager::EncodeManager(SConnection* conn_, EncCache *encCache_) : conn(con
   encoders[encoderRRE] = new RREEncoder(conn);
   encoders[encoderHextile] = new HextileEncoder(conn);
   encoders[encoderTight] = new TightEncoder(conn);
+  encoders[encoderTightIndexedGIF] = new TightIndexedGIFEncoder(conn);
+  encoders[encoderTightIndexedPNG] = new TightIndexedPNGEncoder(conn);
   encoders[encoderTightJPEG] = new TightJPEGEncoder(conn);
   encoders[encoderTightWEBP] = new TightWEBPEncoder(conn);
   encoders[encoderZRLE] = new ZRLEEncoder(conn);
@@ -447,6 +457,11 @@ void EncodeManager::prepareEncoders(bool allowLossy)
       fullColour = encoderTight;
     indexed = indexedRLE = encoderTight;
     bitmap = bitmapRLE = encoderTight;
+
+    if (encoders[encoderTightIndexedPNG]->isSupported())
+      indexed = indexedRLE = encoderTightIndexedPNG;
+    else if (encoders[encoderTightIndexedGIF]->isSupported())
+      indexed = indexedRLE = encoderTightIndexedGIF;
     break;
   case encodingZRLE:
     fullColour = encoderZRLE;
@@ -473,7 +488,11 @@ void EncodeManager::prepareEncoders(bool allowLossy)
   }
 
   if (indexed == encoderRaw) {
-    if (encoders[encoderZRLE]->isSupported())
+    if (encoders[encoderTightIndexedPNG]->isSupported())
+      indexed = encoderTightIndexedPNG;
+    else if (encoders[encoderTightIndexedGIF]->isSupported())
+      indexed = encoderTightIndexedGIF;
+    else if (encoders[encoderZRLE]->isSupported())
       indexed = encoderZRLE;
     else if (encoders[encoderTight]->isSupported())
       indexed = encoderTight;
@@ -1160,7 +1179,9 @@ void EncodeManager::writeRects(const Region& changed, const PixelBuffer* pb,
     activeEncoders[encoderFullColour] = encoderTightJPEG;
 
   for (i = 0; i < subrects.size(); ++i) {
-    if (encCache->enabled && compresseds[i].size() && !fromCache[i]) {
+    if (encCache->enabled && compresseds[i].size() && !fromCache[i] &&
+        encoderTypes[i] == encoderFullColour) {
+
       void *tmp = malloc(compresseds[i].size());
       memcpy(tmp, &compresseds[i][0], compresseds[i].size());
       encCache->add(isWebp[i] ? encoderTightWEBP : encoderTightJPEG,
@@ -1299,6 +1320,26 @@ uint8_t EncodeManager::getEncoderType(const Rect& rect, const PixelBuffer *pb,
                                                                       compressed,
                                                                       videoDetected);
     }
+  } else if (type == encoderIndexedRLE || type == encoderIndexed) {
+    if (activeEncoders[type] == encoderTightIndexedPNG) {
+      if (encoders[encoderTightIndexedPNG]->flags & EncoderUseNativePF) {
+        delete ppb;
+        ppb = preparePixelBuffer(rect, pb, false);
+      }
+
+      ((TightIndexedPNGEncoder *) encoders[encoderTightIndexedPNG])->compressOnly(ppb,
+                                                                      compressed,
+                                                                      *pal);
+    } else if (activeEncoders[type] == encoderTightIndexedGIF) {
+      if (encoders[encoderTightIndexedGIF]->flags & EncoderUseNativePF) {
+        delete ppb;
+        ppb = preparePixelBuffer(rect, pb, false);
+      }
+
+      ((TightIndexedGIFEncoder *) encoders[encoderTightIndexedGIF])->compressOnly(ppb,
+                                                                      compressed,
+                                                                      *pal);
+    }
   }
 
   delete ppb;
@@ -1317,10 +1358,17 @@ void EncodeManager::writeSubRect(const Rect& rect, const PixelBuffer *pb,
   encoder = startRect(rect, type, compressed.size() == 0, isWebp);
 
   if (compressed.size()) {
-    if (isWebp)
-      ((TightWEBPEncoder *) encoder)->writeOnly(compressed);
-    else
-      ((TightJPEGEncoder *) encoder)->writeOnly(compressed);
+    if (type == encoderFullColour) {
+      if (isWebp)
+        ((TightWEBPEncoder *) encoder)->writeOnly(compressed);
+      else
+        ((TightJPEGEncoder *) encoder)->writeOnly(compressed);
+    } else {
+      if (activeEncoders[type] == encoderTightIndexedPNG)
+        ((TightIndexedPNGEncoder *) encoder)->writeOnly(compressed);
+      else if (activeEncoders[type] == encoderTightIndexedGIF)
+        ((TightIndexedGIFEncoder *) encoder)->writeOnly(compressed);
+    }
   } else {
     if (encoder->flags & EncoderUseNativePF) {
       ppb = preparePixelBuffer(rect, pb, false);

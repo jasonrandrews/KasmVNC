@@ -84,6 +84,8 @@ namespace rfb {
   const int pseudoEncodingVideoScalingLevel9 = -1987;
   const int pseudoEncodingVideoOutTimeLevel1 = -1986;
   const int pseudoEncodingVideoOutTimeLevel100 = -1887;
+  const int pseudoEncodingIndexedPNG = -1886;
+  const int pseudoEncodingIndexedGIF = -1885;
 
   int encodingNum(const char* name);
   const char* encodingName(int num);

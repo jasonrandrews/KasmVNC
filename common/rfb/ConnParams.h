@@ -99,6 +99,8 @@ namespace rfb {
     bool supportsLEDState;
     bool supportsQEMUKeyEvent;
     bool supportsWEBP;
+    bool supportsIndexedPNG;
+    bool supportsIndexedGIF;
 
     bool supportsSetDesktopSize;
     bool supportsFence;

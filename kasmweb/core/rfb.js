@@ -1408,6 +1408,9 @@ export default class RFB extends EventTargetMixin {
         encs.push(encodings.pseudoEncodingContinuousUpdates);
         if (this._hasWebp())
             encs.push(encodings.pseudoEncodingWEBP);
+        // indexed formats: if both are enabled, the server will send PNG
+        encs.push(encodings.pseudoEncodingIndexedPNG);
+        encs.push(encodings.pseudoEncodingIndexedGIF);
 
         // kasm settings; the server may be configured to ignore these
         encs.push(encodings.pseudoEncodingJpegVideoQualityLevel0 + this.jpegVideoQuality);

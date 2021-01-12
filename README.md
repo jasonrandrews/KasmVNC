@@ -39,7 +39,7 @@ This installer assumes you already have a desktop environment installed, but hav
 
 ```sh
 # install dependencies
-sudo apt-get -y install libjpeg-dev
+sudo apt-get -y install libjpeg-dev libpng-dev libgif-dev
 
 # install KasmVNC
 wget -qO- https://github.com/kasmtech/KasmVNC/releases/download/v0.9.1-beta/KasmVNC_0.9.1-beta_Ubuntu_18.04.tar.gz | sudo tar xz --strip 1 -C /

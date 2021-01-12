@@ -50,6 +50,8 @@ export const encodings = {
     pseudoEncodingVideoScalingLevel9: -1987,
     pseudoEncodingVideoOutTimeLevel1: -1986,
     pseudoEncodingVideoOutTimeLevel100: -1887,
+    pseudoEncodingIndexedPNG: -1886,
+    pseudoEncodingIndexedGIF: -1885,
 };
 
 export function encodingName(num) {

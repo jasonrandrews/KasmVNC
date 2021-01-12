@@ -38,7 +38,8 @@ ConnParams::ConnParams()
     supportsDesktopResize(false), supportsExtendedDesktopSize(false),
     supportsDesktopRename(false), supportsLastRect(false),
     supportsLEDState(false), supportsQEMUKeyEvent(false),
-    supportsWEBP(false),
+    supportsWEBP(false), supportsIndexedPNG(false),
+    supportsIndexedGIF(false),
     supportsSetDesktopSize(false), supportsFence(false),
     supportsContinuousUpdates(false),
     compressLevel(2), qualityLevel(-1), fineQualityLevel(-1),
@@ -116,6 +117,8 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
   supportsLastRect = false;
   supportsQEMUKeyEvent = false;
   supportsWEBP = false;
+  supportsIndexedPNG = false;
+  supportsIndexedGIF = false;
   compressLevel = -1;
   qualityLevel = -1;
   fineQualityLevel = -1;
@@ -158,6 +161,12 @@ void ConnParams::setEncodings(int nEncodings, const rdr::S32* encodings)
       break;
     case pseudoEncodingWEBP:
       supportsWEBP = true;
+      break;
+    case pseudoEncodingIndexedPNG:
+      supportsIndexedPNG = true;
+      break;
+    case pseudoEncodingIndexedGIF:
+      supportsIndexedGIF = true;
       break;
     case pseudoEncodingFence:
       supportsFence = true;

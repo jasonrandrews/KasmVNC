@@ -55,6 +55,8 @@ set(RFB_SOURCES
   Timer.cxx
   TightDecoder.cxx
   TightEncoder.cxx
+  TightIndexedGIFEncoder.cxx
+  TightIndexedPNGEncoder.cxx
   TightJPEGEncoder.cxx
   TightWEBPEncoder.cxx
   UpdateTracker.cxx

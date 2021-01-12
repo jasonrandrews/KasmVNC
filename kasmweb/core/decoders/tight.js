@@ -61,6 +61,12 @@ export default class TightDecoder {
         } else if (this._ctl === 0x0B) {
             ret = this._webpRect(x, y, width, height,
                                 sock, display, depth);
+        } else if (this._ctl === 0x0C) {
+            ret = this._indexedpngRect(x, y, width, height,
+                                sock, display, depth);
+        } else if (this._ctl === 0x0D) {
+            ret = this._gifRect(x, y, width, height,
+                                sock, display, depth);
         } else if ((this._ctl & 0x80) == 0) {
             ret = this._basicRect(this._ctl, x, y, width, height,
                                   sock, display, depth);
@@ -109,6 +115,28 @@ export default class TightDecoder {
         }
 
         display.imageRect(x, y, width, height, "image/webp", data);
+
+        return true;
+    }
+
+    _indexedpngRect(x, y, width, height, sock, display, depth) {
+        let data = this._readData(sock);
+        if (data === null) {
+            return false;
+        }
+
+        display.imageRect(x, y, width, height, "image/png", data);
+
+        return true;
+    }
+
+    _gifRect(x, y, width, height, sock, display, depth) {
+        let data = this._readData(sock);
+        if (data === null) {
+            return false;
+        }
+
+        display.imageRect(x, y, width, height, "image/gif", data);
 
         return true;
     }
