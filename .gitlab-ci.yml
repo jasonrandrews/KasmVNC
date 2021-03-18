@@ -27,7 +27,7 @@ after_script:
 build_ubuntu_bionic:
   stage: build
   script:
-    - echo bash builder/build-distro ubuntu bionic
+    - bash builder/build-distro ubuntu bionic
   artifacts:
     paths:
       - output/
@@ -36,7 +36,7 @@ build_ubuntu_focal:
   stage: build
   script:
     - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
-        echo bash builder/build-distro ubuntu focal;
+        bash builder/build-distro ubuntu focal;
       fi
   artifacts:
     paths:
@@ -46,7 +46,7 @@ build_debian_buster:
   stage: build
   script:
     - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
-        echo bash builder/build-distro debian buster;
+        bash builder/build-distro debian buster;
       fi
   artifacts:
     paths:
@@ -56,7 +56,7 @@ build_debian_bullseye:
   stage: build
   script:
     - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
-        echo bash builder/build-distro debian bullseye;
+        bash builder/build-distro debian bullseye;
       fi
   artifacts:
     paths:
@@ -66,7 +66,7 @@ build_kali_rolling:
   stage: build
   script:
     - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
-        echo bash builder/build-distro kali kali-rolling;
+        bash builder/build-distro kali kali-rolling;
       fi
   artifacts:
     paths:
@@ -75,7 +75,7 @@ build_kali_rolling:
 build_centos7:
   stage: build
   script:
-    - echo bash builder/build-distro centos core
+    - bash builder/build-distro centos core
   artifacts:
     paths:
       - output/
