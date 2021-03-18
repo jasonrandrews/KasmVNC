@@ -38,3 +38,16 @@ build_deb:
   artifacts:
     paths:
       - output/
+
+build_rpm:
+  stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
+  script:
+    - echo "Always build Centos 7"
+    - echo bash builder/build-distro centos core
+  artifacts:
+    paths:
+      - output/
