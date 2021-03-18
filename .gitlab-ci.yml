@@ -40,6 +40,29 @@ build_deb:
     paths:
       - output/
 
+build_ubuntu_bionic:
+  stage: build
+  script:
+    - echo "Always build Ubuntu 18"
+    - echo bash builder/build-distro ubuntu bionic
+  artifacts:
+    paths:
+      - output/
+
+build_ubuntu_focal:
+  stage: build
+  script:
+    - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
+        echo "Build all distros";
+        echo bash builder/build-distro ubuntu focal;
+        echo bash builder/build-distro debian buster;
+        echo bash builder/build-distro debian bullseye;
+        echo bash builder/build-distro kali kali-rolling;
+      fi
+  artifacts:
+    paths:
+      - output/
+
 build_rpm:
   stage: build
   script:
