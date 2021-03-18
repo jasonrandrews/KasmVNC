@@ -19,12 +19,13 @@ stages:
   - cp -r builder/build/* output/
   - rm output/*.tar.gz
 
+before_script:
+  - *prepare_build
+after_script:
+  - *prepare_artfacts
+
 build_deb:
   stage: build
-  before_script:
-    - *prepare_build
-  after_script:
-    - *prepare_artfacts
   script:
     - echo "Always build Ubuntu 18"
     - echo bash builder/build-distro ubuntu bionic
@@ -41,10 +42,6 @@ build_deb:
 
 build_rpm:
   stage: build
-  before_script:
-    - *prepare_build
-  after_script:
-    - *prepare_artfacts
   script:
     - echo "Always build Centos 7"
     - echo bash builder/build-distro centos core
