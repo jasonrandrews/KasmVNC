@@ -24,26 +24,9 @@ before_script:
 after_script:
   - *prepare_artfacts
 
-build_deb:
-  stage: build
-  script:
-    - echo "Always build Ubuntu 18"
-    - echo bash builder/build-distro ubuntu bionic
-    - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
-        echo "Build all distros";
-        echo bash builder/build-distro ubuntu focal;
-        echo bash builder/build-distro debian buster;
-        echo bash builder/build-distro debian bullseye;
-        echo bash builder/build-distro kali kali-rolling;
-      fi
-  artifacts:
-    paths:
-      - output/
-
 build_ubuntu_bionic:
   stage: build
   script:
-    - echo "Always build Ubuntu 18"
     - echo bash builder/build-distro ubuntu bionic
   artifacts:
     paths:
@@ -53,10 +36,36 @@ build_ubuntu_focal:
   stage: build
   script:
     - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
-        echo "Build all distros";
         echo bash builder/build-distro ubuntu focal;
+      fi
+  artifacts:
+    paths:
+      - output/
+
+build_debian_buster:
+  stage: build
+  script:
+    - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
         echo bash builder/build-distro debian buster;
+      fi
+  artifacts:
+    paths:
+      - output/
+
+build_debian_bullseye:
+  stage: build
+  script:
+    - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
         echo bash builder/build-distro debian bullseye;
+      fi
+  artifacts:
+    paths:
+      - output/
+
+build_kali_rolling:
+  stage: build
+  script:
+    - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
         echo bash builder/build-distro kali kali-rolling;
       fi
   artifacts:
@@ -66,7 +75,6 @@ build_ubuntu_focal:
 build_rpm:
   stage: build
   script:
-    - echo "Always build Centos 7"
     - echo bash builder/build-distro centos core
   artifacts:
     paths:
