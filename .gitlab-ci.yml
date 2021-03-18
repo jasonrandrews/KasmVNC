@@ -27,13 +27,13 @@ build_deb:
     - *prepare_artfacts
   script:
     - echo "Always build Ubuntu 18"
-    - bash builder/build-distro ubuntu bionic
+    - echo bash builder/build-distro ubuntu bionic
     - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then
         echo "Build all distros";
-        bash builder/build-distro ubuntu focal;
-        bash builder/build-distro debian buster;
-        bash builder/build-distro debian bullseye;
-        bash builder/build-distro kali kali-rolling;
+        echo bash builder/build-distro ubuntu focal;
+        echo bash builder/build-distro debian buster;
+        echo bash builder/build-distro debian bullseye;
+        echo bash builder/build-distro kali kali-rolling;
       fi
   artifacts:
     paths:
