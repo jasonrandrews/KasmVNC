@@ -72,7 +72,7 @@ build_kali_rolling:
     paths:
       - output/
 
-build_rpm:
+build_centos7:
   stage: build
   script:
     - echo bash builder/build-distro centos core
