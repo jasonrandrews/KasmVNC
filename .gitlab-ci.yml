@@ -6,8 +6,8 @@ variables:
   GITLAB_SHARED_DIND_DIR: /builds/$CI_PROJECT_PATH/shared
 
 stages:
-  # - build
   - upload
+  - build
 
 .prepare_build: &prepare_build
   - ls -l
