@@ -107,7 +107,7 @@ upload:
   script:
     - apt-get update
     - apt-get install -y ruby2.7 git
-    - ls
+    - git tag
     - .ci/next_release_version
     - export RELEASE_VERSION="$(.ci/next_release_version)"
     - echo $RELEASE_VERSION
