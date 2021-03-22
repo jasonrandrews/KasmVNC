@@ -1,0 +1,5 @@
+#!/bin/bash
+
+set -e
+
+git tag | sort -r | head -1 | sed -e 's/^v//' -e 's/\-.\+//' | awk -F. -v OFS=. 'NF==1{print ++$NF}; NF>1{if(length($NF+1)>length($NF))$(NF-1)++; $NF=sprintf("%0*d", length($NF), ($NF+1)%(10^length($NF))); print}'
