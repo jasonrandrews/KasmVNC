@@ -21,13 +21,12 @@ stages:
   - cp -r builder/build/* output/
   - rm output/*.tar.gz
 
-before_script:
-  - *prepare_build
-after_script:
-  - *prepare_artfacts
-
 build_ubuntu_bionic:
   stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
   script:
     - bash builder/build-distro ubuntu bionic
   artifacts:
@@ -36,6 +35,10 @@ build_ubuntu_bionic:
 
 build_ubuntu_focal:
   stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
   script:
     - if [ -n "$BUILD_ALL_DISTROS" ]; then
         bash builder/build-distro ubuntu focal;
@@ -46,6 +49,10 @@ build_ubuntu_focal:
 
 build_debian_buster:
   stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
   script:
     - if [ -n "$BUILD_ALL_DISTROS" ]; then
         bash builder/build-distro debian buster;
@@ -56,6 +63,10 @@ build_debian_buster:
 
 build_debian_bullseye:
   stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
   script:
     - if [ -n "$BUILD_ALL_DISTROS" ]; then
         bash builder/build-distro debian bullseye;
@@ -66,6 +77,10 @@ build_debian_bullseye:
 
 build_kali_rolling:
   stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
   script:
     - if [ -n "$BUILD_ALL_DISTROS" ]; then
         bash builder/build-distro kali kali-rolling;
@@ -76,6 +91,10 @@ build_kali_rolling:
 
 build_centos7:
   stage: build
+  before_script:
+    - *prepare_build
+  after_script:
+    - *prepare_artfacts
   script:
     - bash builder/build-distro centos core
   artifacts:
