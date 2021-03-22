@@ -103,8 +103,10 @@ build_centos7:
 
 upload:
   stage: upload
-  image: ubuntu:xenial
+  image: ubuntu:focal
   script:
+    - apt-get update
+    - apt-get install -y ruby2.7
     - export RELEASE_VERSION="$(.ci/next_release_version)"
     - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')"
     - .ci/detect_os_arch_package_format output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb | source /dev/stdin
