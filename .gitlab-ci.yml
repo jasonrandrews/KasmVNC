@@ -108,12 +108,9 @@ upload:
   script:
     - apt-get update
     - apt-get install -y ruby2.7 git
-    - git tag
-    - .ci/next_release_version
     - export RELEASE_VERSION="$(.ci/next_release_version)"
-    - echo $RELEASE_VERSION
     - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')"
-    - .ci/detect_os_arch_package_format output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb
+    - export S3_BUILD_DIRECTORY="kasmvnc/${CI_COMMIT_SHA}"
     - .ci/detect_os_arch_package_format output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb > /tmp/os_arch_package_format
     - source /tmp/os_arch_package_format
     - export BUILD_FILE="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}_${SANITIZED_BRANCH}_${CI_COMMIT_SHA:0:6}_${OS_ARCH}.${PACKAGE_FORMAT}"
