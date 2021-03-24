@@ -133,6 +133,7 @@ upload:
     - apt-get install -y ruby2.7 git
     - apt-get install -y python3 python3-pip python3-boto3 curl pkg-config libxmlsec1-dev
     - git clone https://bitbucket.org/awslabs/amazon-s3-bitbucket-pipelines-python.git
+    - CI_COMMIT_REF_NAME=release/1.2.4
     - if echo $CI_COMMIT_REF_NAME | grep -Pq '^release/([\d.]+)$'; then
         export RELEASE_BRANCH=1;
       fi
@@ -145,5 +146,6 @@ upload:
     - for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
         prepare_upload_filename "$package";
         echo $BUILD_FILE;
+        upload_to_s3;
       done
     - exit 1
