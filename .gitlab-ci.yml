@@ -120,8 +120,11 @@ upload:
         };
 
         function upload_to_s3() {
+          local package="$1"
+          local upload_file_name="$2"
+
           # Transfer to S3
-          python3 amazon-s3-bitbucket-pipelines-python/s3_upload.py "${S3_BUCKET}" ${BASE_DIR}/builder/build/${BUILD_FILE} "${S3_BUILD_DIRECTORY}/${BUILD_FILE}";
+          python3 amazon-s3-bitbucket-pipelines-python/s3_upload.py "${S3_BUCKET}" "$package" "${S3_BUILD_DIRECTORY}/${upload_file_name}";
           # Use the Gitlab API to tell Gitlab where the artifact was stored
           export S3_URL="https://${S3_BUCKET}.s3.amazonaws.com/${S3_BUILD_DIRECTORY}/${BUILD_FILE}";
           export BUILD_STATUS="{\"key\":\"doc\", \"state\":\"SUCCESSFUL\", \"name\":\"${BUILD_FILE}\", \"url\":\"${S3_URL}\"}";
@@ -146,6 +149,6 @@ upload:
     - for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
         prepare_upload_filename "$package";
         echo $BUILD_FILE;
-        upload_to_s3;
+        upload_to_s3 "$package" "$BUILD_FILE"
       done
     - exit 1
