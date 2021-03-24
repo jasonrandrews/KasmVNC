@@ -127,11 +127,10 @@ upload:
     - export RELEASE_VERSION=$(.ci/next_release_version "$CI_COMMIT_REF_NAME")
     - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')"
     - export S3_BUILD_DIRECTORY="kasmvnc/${CI_COMMIT_SHA}"
-    - |
-        > output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb;
-        > output/centos_core/kasmvncserver-0.9.1~beta-1.el7.x86_64.rpm;
-        for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
-          prepare_upload_filename "$package"
-          echo $BUILD_FILE;
-        done
+    - > output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb;
+      > output/centos_core/kasmvncserver-0.9.1~beta-1.el7.x86_64.rpm;
+      for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
+        prepare_upload_filename "$package"
+        echo $BUILD_FILE;
+      done
     - false
