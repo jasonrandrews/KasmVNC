@@ -144,4 +144,4 @@ upload:
         prepare_upload_filename "$package";
         echo $BUILD_FILE;
       done
-    - false
+    - exit 1
