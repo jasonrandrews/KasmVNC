@@ -111,10 +111,13 @@ upload:
     - if echo $CI_COMMIT_REF_NAME | grep -Pq '^release/([\d.]+)$'; then export RELEASE_BRANCH=1; fi
     - echo $RELEASE_BRANCH
     - if [ -n "$RELEASE_BRANCH" ]; then
-        export RELEASE_VERSION=$(echo "$CI_COMMIT_REF_NAME" | sed 's!release/!!'); \
+        export RELEASE_VERSION=$(echo "$CI_COMMIT_REF_NAME" | sed 's!release/!!');
       else
+        .ci/next_release_version;
         export RELEASE_VERSION="$(.ci/next_release_version)";
+        echo "$RELEASE_VERSION";
       fi
+    - echo "$RELEASE_VERSION";
     - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')"
     - export S3_BUILD_DIRECTORY="kasmvnc/${CI_COMMIT_SHA}"
     - .ci/detect_os_arch_package_format output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb > /tmp/os_arch_package_format
