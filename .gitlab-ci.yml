@@ -152,7 +152,7 @@ upload:
     - for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
         prepare_upload_filename "$package";
         echo;
-        echo "File to upload: $upload_filename";
+        echo "File to upload $upload_filename";
         upload_to_s3 "$package" "$upload_filename";
       done
     - exit 1
