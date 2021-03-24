@@ -109,7 +109,7 @@ upload:
     - apt-get update
     - apt-get install -y ruby2.7 git
     - if echo $CI_COMMIT_REF_NAME | grep -Pq '^release/([\d.]+)$'; then
-        RELEASE_BRANCH=1;
+        export RELEASE_BRANCH=1;
       fi
     - export RELEASE_VERSION="$(.ci/next_release_version)"
     - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')"
