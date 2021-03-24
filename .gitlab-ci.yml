@@ -108,7 +108,7 @@ upload:
   before_script:
     - |
         function prepare_upload_filename() {
-          local package="$1"
+          local package="$1";
 
           .ci/detect_os_arch_package_format "$package" > /tmp/os_arch_package_format;
           source /tmp/os_arch_package_format;
@@ -117,20 +117,31 @@ upload:
           else
             export BUILD_FILE="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}_${SANITIZED_BRANCH}_${CI_COMMIT_SHA:0:6}_${OS_ARCH}.${PACKAGE_FORMAT}";
           fi
+        };
+
+        function upload_to_s3() {
+          # Transfer to S3
+          python3 amazon-s3-bitbucket-pipelines-python/s3_upload.py "${S3_BUCKET}" ${BASE_DIR}/builder/build/${BUILD_FILE} "${S3_BUILD_DIRECTORY}/${BUILD_FILE}";
+          # Use the Gitlab API to tell Gitlab where the artifact was stored
+          export S3_URL="https://${S3_BUCKET}.s3.amazonaws.com/${S3_BUILD_DIRECTORY}/${BUILD_FILE}";
+          export BUILD_STATUS="{\"key\":\"doc\", \"state\":\"SUCCESSFUL\", \"name\":\"${BUILD_FILE}\", \"url\":\"${S3_URL}\"}";
+          curl --request POST --header "PRIVATE-TOKEN:${GITLAB_API_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/statuses/${CI_COMMIT_SHA}?state=success&name=build-url&target_url=${S3_URL}";
         }
   script:
     - apt-get update
     - apt-get install -y ruby2.7 git
+    - apt-get install -y python3 python3-pip python3-boto3 curl pkg-config libxmlsec1-dev
+    - git clone https://bitbucket.org/awslabs/amazon-s3-bitbucket-pipelines-python.git
     - if echo $CI_COMMIT_REF_NAME | grep -Pq '^release/([\d.]+)$'; then
         export RELEASE_BRANCH=1;
       fi
     - export RELEASE_VERSION=$(.ci/next_release_version "$CI_COMMIT_REF_NAME")
     - export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')"
     - export S3_BUILD_DIRECTORY="kasmvnc/${CI_COMMIT_SHA}"
-    - > output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb;
-      > output/centos_core/kasmvncserver-0.9.1~beta-1.el7.x86_64.rpm;
-      for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
-        prepare_upload_filename "$package"
+    - touch output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb;
+    - touch output/centos_core/kasmvncserver-0.9.1~beta-1.el7.x86_64.rpm;
+    - for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
+        prepare_upload_filename "$package";
         echo $BUILD_FILE;
       done
     - false
