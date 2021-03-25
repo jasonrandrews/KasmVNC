@@ -5,6 +5,7 @@ function prepare_upload_filename() {
 
   .ci/detect_os_arch_package_format "$package" > /tmp/os_arch_package_format;
   source /tmp/os_arch_package_format;
+  detect_release_branch
   if [ -n "$RELEASE_BRANCH" ]; then
     export upload_filename="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}_${OS_ARCH}.${PACKAGE_FORMAT}";
   else
