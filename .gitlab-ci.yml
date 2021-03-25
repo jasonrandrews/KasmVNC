@@ -108,6 +108,8 @@ upload:
   before_script:
     - . .ci/upload.sh
   script:
+    - foobar=1
+    - echo $foobar
     - export S3_BUILD_DIRECTORY="kasmvnc/${CI_COMMIT_SHA}"
     - prepare_to_run_scripts_and_s3_uploads
     - export RELEASE_VERSION=$(.ci/next_release_version "$CI_COMMIT_REF_NAME")
