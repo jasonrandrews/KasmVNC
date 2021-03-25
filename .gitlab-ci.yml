@@ -7,8 +7,8 @@ variables:
   GIT_FETCH_EXTRA_FLAGS: --tags
 
 stages:
-  - build
   - upload
+  - build
 
 .prepare_build: &prepare_build
   - ls -l
@@ -111,9 +111,13 @@ upload:
     - export S3_BUILD_DIRECTORY="kasmvnc/${CI_COMMIT_SHA}"
     - prepare_to_run_scripts_and_s3_uploads
     - export RELEASE_VERSION=$(.ci/next_release_version "$CI_COMMIT_REF_NAME")
+    - mkdir -p output/buster output/centos_core
+    - touch output/buster/kasmvncserver_0.9.1~beta-1_amd64.deb;
+    - touch output/centos_core/kasmvncserver-0.9.1~beta-1.el7.x86_64.rpm;
     - for package in `find output/ -type f -name 'kasmvncserver_*.deb' -or -name '*.rpm'`; do
         prepare_upload_filename "$package";
         echo;
         echo "File to upload $upload_filename";
         upload_to_s3 "$package" "$upload_filename";
       done
+    - exit 1
