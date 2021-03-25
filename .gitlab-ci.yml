@@ -15,7 +15,6 @@ stages:
   - pwd
   - apk add bash
   - mkdir -p "$GITLAB_SHARED_DIND_DIR" && chmod 777 "$GITLAB_SHARED_DIND_DIR"
-  - if echo "$CI_COMMIT_BRANCH" | grep -Eq '(release|testing)'; then export BUILD_ALL_DISTROS=1; fi
 
 .prepare_artfacts: &prepare_artfacts
   - mkdir output
@@ -41,9 +40,7 @@ build_ubuntu_focal:
   after_script:
     - *prepare_artfacts
   script:
-    - if [ -n "$BUILD_ALL_DISTROS" ]; then
-        bash builder/build-distro ubuntu focal;
-      fi
+    - bash builder/build-distro ubuntu focal;
   artifacts:
     paths:
       - output/
@@ -55,9 +52,7 @@ build_debian_buster:
   after_script:
     - *prepare_artfacts
   script:
-    - if [ -n "$BUILD_ALL_DISTROS" ]; then
-        bash builder/build-distro debian buster;
-      fi
+    - bash builder/build-distro debian buster;
   artifacts:
     paths:
       - output/
@@ -69,9 +64,7 @@ build_debian_bullseye:
   after_script:
     - *prepare_artfacts
   script:
-    - if [ -n "$BUILD_ALL_DISTROS" ]; then
-        bash builder/build-distro debian bullseye;
-      fi
+    - bash builder/build-distro debian bullseye;
   artifacts:
     paths:
       - output/
@@ -83,9 +76,7 @@ build_kali_rolling:
   after_script:
     - *prepare_artfacts
   script:
-    - if [ -n "$BUILD_ALL_DISTROS" ]; then
-        bash builder/build-distro kali kali-rolling;
-      fi
+    - bash builder/build-distro kali kali-rolling;
   artifacts:
     paths:
       - output/
