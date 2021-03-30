@@ -1,0 +1,3 @@
+[submodule "kasmweb"]
+	path = kasmweb
+	url = https://github.com/kasmtech/noVNC.git
