@@ -1,9 +1,15 @@
 #!/bin/bash
 
+is_kasmvnc() {
+  local package="$1";
+
+  echo "$package" | grep -q '^kasmvncserver'
+}
+
 function prepare_upload_filename() {
   local package="$1";
 
-  if echo "$package" | grep -vq '^kasmvncserver'; then
+  if ! is_kasmvnc "$package"; then
     export upload_filename="$package"
     return
   fi
