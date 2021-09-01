@@ -3,6 +3,11 @@
 function prepare_upload_filename() {
   local package="$1";
 
+  if echo "$package" | grep -vq '^kasmvncserver'; then
+    export upload_filename="$package"
+    return
+  fi
+
   .ci/detect_os_arch_package_format "$package" > /tmp/os_arch_package_format;
   source /tmp/os_arch_package_format;
   detect_release_branch
