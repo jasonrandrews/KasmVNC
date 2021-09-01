@@ -36,6 +36,7 @@ mv $shared_with_docker_dir/$tarball_name \
 
 if [ "$build_tag" = "+libjpeg-turbo_latest" ]; then
   chown $L_UID:$L_GID $shared_with_docker_dir/${os_codename}/*
-  mv $shared_with_docker_dir/${os_codename}/*.deb \
+  mkdir -p $PWD/builder/build/${os_codename}/
+  mv $shared_with_docker_dir/${os_codename}/libjpeg-turbo*.deb \
     $PWD/builder/build/${os_codename}/
 fi
