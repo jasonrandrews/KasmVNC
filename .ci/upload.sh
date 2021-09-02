@@ -3,7 +3,7 @@
 is_kasmvnc() {
   local package="$1";
 
-  echo "$package" | grep -q '^kasmvncserver'
+  echo "$package" | grep -q 'kasmvncserver_'
 }
 
 function prepare_upload_filename() {
@@ -36,6 +36,7 @@ function upload_to_s3() {
   export BUILD_STATUS="{\"key\":\"doc\", \"state\":\"SUCCESSFUL\", \"name\":\"${upload_filename}\", \"url\":\"${S3_URL}\"}";
   curl --request POST --header "PRIVATE-TOKEN:${GITLAB_API_TOKEN}" "${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/statuses/${CI_COMMIT_SHA}?state=success&name=build-url&target_url=${S3_URL}";
 };
+
 function prepare_to_run_scripts_and_s3_uploads() {
   export DEBIAN_FRONTEND=noninteractive;
   apt-get update;
