@@ -19,14 +19,14 @@ function prepare_upload_filename() {
   detect_release_branch
   detect_revision "$package"
   if [ -n "$REVISION" ]; then
-    REVISION="_${REVISION}_"
+    REVISION="_${REVISION}"
   fi
 
   if [ -n "$RELEASE_BRANCH" ]; then
-    export upload_filename="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}${REVISION}${OS_ARCH}.${PACKAGE_FORMAT}";
+    export upload_filename="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}${REVISION}_${OS_ARCH}.${PACKAGE_FORMAT}";
   else
     export SANITIZED_BRANCH="$(echo $CI_COMMIT_REF_NAME | sed 's/\//_/g')";
-    export upload_filename="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}_${SANITIZED_BRANCH}_${CI_COMMIT_SHA:0:6}_${REVISION}${OS_ARCH}.${PACKAGE_FORMAT}";
+    export upload_filename="kasmvncserver_${PACKAGE_OS}_${RELEASE_VERSION}_${SANITIZED_BRANCH}_${CI_COMMIT_SHA:0:6}${REVISION}_${OS_ARCH}.${PACKAGE_FORMAT}";
   fi
 };
 
